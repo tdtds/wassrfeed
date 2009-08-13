@@ -65,6 +65,7 @@ while uri = ARGV.shift
 		# trimming ID when twitter
 		if %r|^http://twitter\.com/| =~ item.link then
 			item.description.sub!( /^[^:]*: /, '' )
+			next if item.description.include?( '@' )
 		end
 
 		post_wassr item.description
