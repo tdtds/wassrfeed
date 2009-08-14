@@ -1,4 +1,10 @@
-#!/home/sho/bin/ruby18
+#!/usr/bin/env ruby
+
+# wassrfeed.rb
+#
+# Copyright (C) 2009 TADA Tadashi <t@tdtds.jp>
+# You can redistribute it and/or modify it under GPL2.
+
 
 require 'rubygems'
 require 'open-uri'
