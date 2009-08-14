@@ -1,0 +1,16 @@
+
+          wassrfeed: feedの内容をWassrのヒトコトへ流す
+
+パラメタに与えたURLからfeedを取得して、その内容をWassrに流します。
+現在サポートしているfeedはほぼTwitterのみです(ようするにTwitterの
+つぶやきをWassrに転送するのが目的)。
+
+前回の状態を記録しておくので、次の実行では追加分のみを流します。
+cron等で定期的に実行してください。
+
+Wassrのユーザ名・パスワードの管理にはPitを使います。rubygems等で
+あらかじめインストールしておいてください。
+
+                   Copyright (C) 2009 TADA Tadashi <t@tdtds.jp>
+           You can redistribute it and/or modify it under GPL2.
+
