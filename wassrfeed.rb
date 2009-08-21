@@ -58,8 +58,7 @@ while uri = ARGV.shift
 	feed = RSS::Parser::parse( open( uri, &:read ) )
 
 	# reading latest status
-	latest = conf[:latest][feed.channel.link]
-	latest = Time::parse( '2009-08-13 17:00' ) unless latest
+	latest = conf[:latest][feed.channel.link] || Time::now
 
 	# making status list
 	status = []
@@ -79,4 +78,5 @@ while uri = ARGV.shift
 		WassrFeedRC.save( conf )
 		sleep( 1 )
 	end
+	WassrFeedRC.save( conf )
 end
