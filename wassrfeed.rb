@@ -13,6 +13,7 @@ require 'rss'
 require 'pit'
 require 'timeout'
 require 'net/http'
+require 'cgi'
 
 module WassrFeedRC
 	RCFILE = "#{ENV['HOME']}/.wassrfeedrc"
@@ -48,7 +49,7 @@ class Wassr
 			Net::HTTP.version_1_2
 			req = Net::HTTP::Post.new( '/statuses/update.json' )
 			req.basic_auth( @login['user'], @login['pass'] )
-			req.body = "source=wassrfeed&status=#{status}"
+			req.body = "source=wassrfeed&status=#{CGI::escape status}"
 			Net::HTTP::Proxy( px_host, px_port ).start( 'api.wassr.jp', 80 ) do |http|
 				res = http.request( req )
 			end
@@ -79,8 +80,9 @@ if __FILE__ == $0 then
 				item.description.sub!( /^[^:]*: /, '' )
 				next if item.description.include?( '@' )
 			end
-	
-			wassr.post_status( item.description )
+
+			text = CGI::unescapeHTML( CGI::unescapeHTML( item.description ) )
+			wassr.post_status( text )
 			conf[:latest][feed.channel.link] = item.pubDate
 			WassrFeedRC.save( conf )
 			sleep( 1 )
