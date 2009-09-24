@@ -62,7 +62,12 @@ if __FILE__ == $0 then
 	
 	while uri = ARGV.shift
 		# reading feed
-		feed = RSS::Parser::parse( open( uri, &:read ) )
+		begin
+			feed = RSS::Parser::parse( open( uri, &:read ) )
+		rescue OpenURI::HTTPError, Errno::ECONNRESET
+			$stderr.puts "error on reading feed: #$!"
+			exit( 1 )
+		end
 	
 		# reading latest status
 		latest = conf[:latest][feed.channel.link] || Time::now
