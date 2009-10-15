@@ -48,6 +48,11 @@ class Wassr
 		post( '/statuses/update.json', params )
 	end
 
+	def post_channel( channel, status )
+		params = "body=#{CGI::escape status}"
+		post( "/channel_message/update.json?name_en=#{channel}", params )
+	end
+
 	:private
 	def post( end_point, params )
 		px_host, px_port = (ENV['http_proxy']||'').scan( %r|^(?:.*?)://(.*?):(\d+)?| ).flatten
