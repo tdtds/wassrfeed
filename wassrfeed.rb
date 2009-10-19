@@ -98,9 +98,9 @@ if __FILE__ == $0 then
 			end
 
 			text = CGI::unescapeHTML( CGI::unescapeHTML( item.description ) )
-			unless text.sub!( /^#([a-zA-Z0-9]+)\s/ ) {
-					wassr.post_channel( $1, text )
-				}
+			if text.sub!( /^#([a-zA-Z0-9]+)\s/, '' )
+				wassr.post_channel( $1, text )
+			else
 				wassr.post_status( text )
 			end
 			conf[:latest][feed.channel.link] = item.pubDate
