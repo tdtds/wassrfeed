@@ -74,7 +74,7 @@ if __FILE__ == $0 then
 	while uri = ARGV.shift
 		# reading feed
 		begin
-			feed = RSS::Parser::parse( open( uri, &:read ) )
+			feed = RSS::Parser::parse( open( uri, &:read ), false, false )
 		rescue OpenURI::HTTPError, Errno::ECONNRESET
 			$stderr.puts "error on reading feed: #$!"
 			exit( 1 )
