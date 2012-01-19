@@ -69,6 +69,19 @@ class Wassr
 	end
 end
 
+def resolve_redirect( uri, depth = 1 ) # depth IS NOT SUPPORTED
+	uri = URI( uri )
+	px_host, px_port = (ENV['http_proxy']||'').scan( %r|^(?:.*?)://(.*?):(\d+)?| ).flatten
+	Net::HTTP.Proxy( px_host, px_port ).start( uri.host ) do |h|
+		res = h.get( uri.path.empty? ? '/' : uri.path )
+		if res.is_a? Net::HTTPRedirection
+			res['location']
+		else
+			uri.to_s
+		end
+	end
+end
+
 if __FILE__ == $0 then
 	conf = WassrFeedRC::load
 	
@@ -99,6 +112,10 @@ if __FILE__ == $0 then
 			end
 
 			text = CGI::unescapeHTML( CGI::unescapeHTML( item.description ) )
+			text.gsub!( %r|(http://t.co/\w+)| ) do |re|
+				resolve_redirect re
+			end
+
 			if text.sub!( /^#([a-zA-Z0-9]+)\s/, '' )
 				wassr.post_channel( $1, text )
 			else
