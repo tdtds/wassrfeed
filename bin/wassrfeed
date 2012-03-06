@@ -1,0 +1,80 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8; -*-
+#
+# wassrfeed.rb
+#
+# Copyright (C) 2012 TADA Tadashi <t@tdtds.jp>
+# You can redistribute it and/or modify it under GPL.
+#
+
+require 'rubygems'
+require 'open-uri'
+require 'rss'
+
+require 'pit'
+require 'cgi'
+require 'net/wassr'
+require 'wassrfeed/rcfile'
+
+
+def resolve_redirect( uri, depth = 1 ) # depth IS NOT SUPPORTED
+	uri = URI( uri )
+	px_host, px_port = (ENV['http_proxy']||'').scan( %r|^(?:.*?)://(.*?):(\d+)?| ).flatten
+	Net::HTTP.Proxy( px_host, px_port ).start( uri.host ) do |h|
+		res = h.get( uri.path.empty? ? '/' : uri.path )
+		if res.is_a? Net::HTTPRedirection
+			res['location']
+		else
+			uri.to_s
+		end
+	end
+end
+
+conf = WassrFeed::RCfile::load
+
+while uri = ARGV.shift
+	# reading feed
+	begin
+		feed = RSS::Parser::parse( open( uri, &:read ), false, false )
+	rescue OpenURI::HTTPError, Errno::ECONNRESET
+		$stderr.puts "error on reading feed: #$!"
+		exit( 1 )
+	end
+
+	# reading latest status
+	latest = conf[:latest][feed.channel.link] || Time::now
+
+	# making status list
+	status = []
+	feed.channel.items.each do |item|
+		status << item if item.pubDate > latest
+	end
+
+	login = Pit::get( 'wassr', :require => {
+		'user' => 'your ID of Wassr.',
+		'pass' => 'your Password of Wassr.',
+	} )
+	wassr = Net::Wassr.new( login['user'], login['pass'] )
+	status.sort_by{|i| i.pubDate}.each do |item|
+		# trimming ID when twitter
+		if %r|^http://twitter\.com/| =~ item.link then
+			item.description.sub!( /^[^:]*: /, '' )
+			next if item.description.include?( '@' )
+		end
+
+		text = CGI::unescapeHTML( CGI::unescapeHTML( item.description ) )
+		text.gsub!( %r|(http://t.co/\w+)| ) do |re|
+			resolve_redirect re
+		end
+
+		if text.sub!( /^#([a-zA-Z0-9]+)\s/, '' )
+			wassr.post_channel( $1, text )
+		else
+			wassr.post_status( text )
+		end
+		conf[:latest][feed.channel.link] = item.pubDate
+		WassrFeedRC.save( conf )
+		sleep( 1 )
+	end
+	WassrFeed::RCfile.save( conf )
+end
