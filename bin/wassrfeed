@@ -73,7 +73,7 @@ while uri = ARGV.shift
 			wassr.post_status( text )
 		end
 		conf[:latest][feed.channel.link] = item.pubDate
-		WassrFeedRC.save( conf )
+		WassrFeed::RCfile.save( conf )
 		sleep( 1 )
 	end
 	WassrFeed::RCfile.save( conf )
